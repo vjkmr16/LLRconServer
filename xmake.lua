@@ -7,6 +7,7 @@ add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 -- please note that you should add bdslibrary yourself if using dev version
 add_requires("levilamina a1f75c58abae6089cf2daa2fd9221609b0e590a7")
 add_requires("levibuildscript")
+add_requires("boost", {configs = {asio = true}})
 
 if not has_config("vs_runtime") then
     set_runtimes("MD")
@@ -20,6 +21,7 @@ target("RconServer") -- Change this to your mod name.
     add_defines("NOMINMAX", "UNICODE", "_HAS_CXX23=1")
 
     add_packages("levilamina")
+    add_packages("boost")
 
     set_exceptions("none") -- To avoid conflicts with /EHa.
     set_kind("shared")
