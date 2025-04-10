@@ -33,14 +33,14 @@ void MainManager::startRconServer() {
         throw std::runtime_error("The RCON server is already started!");
     }
 
-    rconServer = std::make_shared<rcon::Server>(rcon::Server{
+    rconServer = std::make_shared<rcon::Server>(
         ConfigManager::getConfig().rconSettings.port,
         ConfigManager::getConfig().rconSettings.maxConnections,
         ConfigManager::getConfig().rconSettings.password,
         &onNewConnection,
         &onClientAuth,
         &onCommand
-    });
+    );
 
     rconServer->start();
 }

@@ -21,8 +21,7 @@ void Server::startAccepting() {
         if (!ec) {
             std::lock_guard<std::mutex> guard(clientsMutex);
             if (clients.size() <= maxConnections) {
-                std::shared_ptr<ConnectedClient> client =
-                    std::make_shared<ConnectedClient>(ConnectedClient{socket, false});
+                std::shared_ptr<ConnectedClient> client = std::make_shared<ConnectedClient>(socket, false);
 
                 onNewConnection(client);
 

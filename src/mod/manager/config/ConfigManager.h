@@ -6,9 +6,9 @@
 namespace rcon_server::manager {
 
 struct RconSettings {
-    unsigned short port = 19130;
+    unsigned short port           = 19130;
     unsigned short maxConnections = 5;
-    std::string    password = "Change this to your password";
+    std::string    password       = "Change this to your password";
 };
 
 class ConfigManager final {
