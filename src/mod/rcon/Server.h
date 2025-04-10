@@ -17,12 +17,17 @@ public:
         const std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>& onCommand =
             {}
     )
-    : acceptor({this->ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)}),
+    : acceptor({ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)}),
       maxConnections(maxConnections),
       password(password),
       onNewConnection(onNewConnection),
       onClientAuth(onClientAuth),
       onCommand(onCommand) {}
+
+    Server(const Server&)            = delete;
+    Server& operator=(const Server&) = delete;
+    Server(Server&&)                 = delete;
+    Server& operator=(Server&&)      = delete;
 
     void start();
     void stop();
