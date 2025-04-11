@@ -41,15 +41,21 @@ void Server::startReading(std::shared_ptr<ConnectedClient> client) {
 
     client->socket->async_read_some(
         boost::asio::buffer(*buffer),
-        [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] std::size_t length) -> void {
+        [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
+            onDebugInfo(client, "[Server::startReading] Length: " + std::to_string(length));
+            onDebugInfo(client, "[Server::startReading] Data: " + std::string{buffer->begin(), buffer->end()});
+
             if (!ec) {
                 size_t sizeOfPacket = utils::Utils::bit32ToInt(*buffer);
+                onDebugInfo(client, "[Server::startReading] Size of Packet: " + std::to_string(sizeOfPacket));
+
                 if (sizeOfPacket <= MIN_PACKET_SIZE) {
                     startReading(client);
                 } else {
                     readPacket(client, sizeOfPacket);
                 }
             } else {
+                std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
             }
         }
@@ -62,10 +68,14 @@ void Server::readPacket(std::shared_ptr<ConnectedClient> client, size_t sizeOfPa
     boost::asio::async_read(
         *client->socket,
         boost::asio::buffer(*buffer),
-        [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] std::size_t length) -> void {
+        [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
+            onDebugInfo(client, "[Server::readPacket] Length: " + std::to_string(length));
+            onDebugInfo(client, "[Server::readPacket] Data: " + std::string{buffer->begin(), buffer->end()});
+
             if (!ec) {
                 processPacket(client, *buffer);
             } else {
+                std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
             }
         }
@@ -76,10 +86,11 @@ void Server::writePacket(std::shared_ptr<ConnectedClient> client, const Packet& 
     boost::asio::async_write(
         *client->socket,
         boost::asio::buffer(packet.data.data(), packet.length),
-        [this, client](boost::system::error_code ec, [[maybe_unused]] std::size_t length) -> void {
+        [this, client](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
             if (!ec) {
                 startReading(client);
             } else {
+                std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
             }
         }

@@ -15,14 +15,16 @@ public:
         const std::function<void(const std::shared_ptr<ConnectedClient>)>& onNewConnection = {},
         const std::function<void(const std::shared_ptr<ConnectedClient>)>& onClientAuth    = {},
         const std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>& onCommand =
-            {}
+            {},
+        const std::function<void(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>& onDebugInfo = {}
     )
     : acceptor({ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)}),
       maxConnections(maxConnections),
       password(password),
       onNewConnection(onNewConnection),
       onClientAuth(onClientAuth),
-      onCommand(onCommand) {}
+      onCommand(onCommand),
+      onDebugInfo(onDebugInfo) {}
 
     Server(const Server&)            = delete;
     Server& operator=(const Server&) = delete;
@@ -41,6 +43,7 @@ private:
     std::function<void(const std::shared_ptr<ConnectedClient>)>                                  onNewConnection;
     std::function<void(const std::shared_ptr<ConnectedClient>)>                                  onClientAuth;
     std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)> onCommand;
+    std::function<void(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>        onDebugInfo;
 
     std::unordered_map<boost::asio::ip::tcp::socket*, std::shared_ptr<ConnectedClient>> clients;
     std::mutex                                                                          clientsMutex;

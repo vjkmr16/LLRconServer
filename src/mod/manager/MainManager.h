@@ -19,6 +19,7 @@ private:
     static void        onNewConnection(const std::shared_ptr<rcon::ConnectedClient> client);
     static void        onClientAuth(const std::shared_ptr<rcon::ConnectedClient> client);
     static std::string onCommand(const std::shared_ptr<rcon::ConnectedClient> client, const std::string& command);
+    static void        onDebugInfo(const std::shared_ptr<rcon::ConnectedClient> client, const std::string& debugInfo);
 };
 
 } // namespace rcon_server::manager

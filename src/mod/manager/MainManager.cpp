@@ -39,7 +39,8 @@ void MainManager::startRconServer() {
         ConfigManager::getConfig().rconSettings.password,
         &onNewConnection,
         &onClientAuth,
-        &onCommand
+        &onCommand,
+        &onDebugInfo
     );
 
     rconServer->start();
@@ -100,6 +101,15 @@ std::string MainManager::onCommand(const std::shared_ptr<rcon::ConnectedClient> 
     }
 
     return outputStr;
+}
+
+void MainManager::onDebugInfo(const std::shared_ptr<rcon::ConnectedClient> client, const std::string& debugInfo) {
+    Main::getInstance().getSelf().getLogger().debug(
+        "[Client {}:{}] {}",
+        client->socket->remote_endpoint().address().to_string(),
+        client->socket->remote_endpoint().port(),
+        debugInfo
+    );
 }
 
 } // namespace rcon_server::manager
