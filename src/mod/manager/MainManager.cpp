@@ -37,11 +37,21 @@ void MainManager::startRconServer() {
         ConfigManager::getConfig().rconSettings.port,
         ConfigManager::getConfig().rconSettings.maxConnections,
         ConfigManager::getConfig().rconSettings.password,
-        ConfigManager::getConfig().rconSettings.logOnNewConnection ? &onNewConnection : nullptr,
-        ConfigManager::getConfig().rconSettings.logOnClientAuth ? &onClientAuth : nullptr,
-        ConfigManager::getConfig().rconSettings.logOnClientDisconnect ? &onClientDisconnect : nullptr,
-        ConfigManager::getConfig().rconSettings.logOnCommand ? &onCommand : nullptr,
-        ConfigManager::getConfig().rconSettings.logOnDebugInfo ? &onDebugInfo : nullptr
+        ConfigManager::getConfig().rconSettings.logOnNewConnection
+            ? &onNewConnection
+            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>)>(),
+        ConfigManager::getConfig().rconSettings.logOnClientAuth
+            ? &onClientAuth
+            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>)>(),
+        ConfigManager::getConfig().rconSettings.logOnClientDisconnect
+            ? &onClientDisconnect
+            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>)>(),
+        ConfigManager::getConfig().rconSettings.logOnCommand
+            ? &onCommand
+            : std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>(),
+        ConfigManager::getConfig().rconSettings.logOnDebugInfo
+            ? &onDebugInfo
+            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>()
     );
 
     rconServer->start();
