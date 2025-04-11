@@ -12,6 +12,8 @@ void Server::start() {
 void Server::stop() {
     acceptor.close();
     ioContext.stop();
+
+    clients.clear();
 }
 
 void Server::startAccepting() {
@@ -26,7 +28,7 @@ void Server::startAccepting() {
                 onNewConnection(client);
 
                 clients[socket.get()] = client;
-                startReading(client);
+                readPacket(client);
             } else {
                 socket->close();
             }
@@ -36,44 +38,28 @@ void Server::startAccepting() {
     });
 }
 
-void Server::startReading(std::shared_ptr<ConnectedClient> client) {
+void Server::readPacket(std::shared_ptr<ConnectedClient> client) {
     auto buffer = std::make_shared<std::vector<char>>(4096);
 
     client->socket->async_read_some(
         boost::asio::buffer(*buffer),
         [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
-            onDebugInfo(client, "[Server::startReading] Length: " + std::to_string(length));
-            onDebugInfo(client, "[Server::startReading] " + (ec ? ("Error: " + ec.message()) : "No errors"));
+            onDebugInfo(client, "[Server::readPacket] New Packet. Length: " + std::to_string(length));
+            onDebugInfo(client, "[Server::readPacket] " + (ec ? ("Error: " + ec.message()) : "No errors"));
 
             if (!ec) {
                 size_t sizeOfPacket = utils::Utils::bit32ToInt(*buffer);
-                onDebugInfo(client, "[Server::startReading] Size of Packet: " + std::to_string(sizeOfPacket));
+                onDebugInfo(client, "[Server::readPacket] Size of Packet: " + std::to_string(sizeOfPacket));
 
                 if (sizeOfPacket <= MIN_PACKET_SIZE) {
-                    startReading(client);
+                    onDebugInfo(client, "[Server::readPacket] Invalid Packet");
+                    readPacket(client);
                 } else {
-                    readPacket(client, sizeOfPacket);
+                    onDebugInfo(client, "[Server::readPacket] Correct Packet. Processing...");
+
+                    buffer->resize(sizeOfPacket);
+                    processPacket(client, *buffer);
                 }
-            } else {
-                std::lock_guard<std::mutex> guard(clientsMutex);
-                clients.erase(client->socket.get());
-            }
-        }
-    );
-}
-
-void Server::readPacket(std::shared_ptr<ConnectedClient> client, size_t sizeOfPacket) {
-    auto buffer = std::make_shared<std::vector<char>>(sizeOfPacket);
-
-    boost::asio::async_read(
-        *client->socket,
-        boost::asio::buffer(*buffer),
-        [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
-            onDebugInfo(client, "[Server::readPacket] Length: " + std::to_string(length));
-            onDebugInfo(client, "[Server::readPacket] Data: " + std::string{buffer->begin(), buffer->end()});
-
-            if (!ec) {
-                processPacket(client, *buffer);
             } else {
                 std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
@@ -88,7 +74,7 @@ void Server::writePacket(std::shared_ptr<ConnectedClient> client, const Packet& 
         boost::asio::buffer(packet.data.data(), packet.length),
         [this, client](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
             if (!ec) {
-                startReading(client);
+                readPacket(client);
             } else {
                 std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
@@ -101,6 +87,11 @@ void Server::processPacket(std::shared_ptr<ConnectedClient> client, const std::v
     std::string packetData(buffer.begin() + 8, buffer.end() - 2);
     int         id   = utils::Utils::bit32ToInt(buffer);
     int         type = utils::Utils::typeToInt(buffer);
+
+    onDebugInfo(client, "[Server::processPacket] Packet:");
+    onDebugInfo(client, "[Server::processPacket] Id: " + std::to_string(id));
+    onDebugInfo(client, "[Server::processPacket] Type: " + std::to_string(type));
+    onDebugInfo(client, "[Server::processPacket] Data: " + packetData);
 
     Packet packet;
 

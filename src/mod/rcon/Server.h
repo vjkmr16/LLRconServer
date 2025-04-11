@@ -49,9 +49,8 @@ private:
     std::mutex                                                                          clientsMutex;
 
     void startAccepting();
-    void startReading(std::shared_ptr<ConnectedClient> client);
 
-    void readPacket(std::shared_ptr<ConnectedClient> client, size_t sizeOfPacket);
+    void readPacket(std::shared_ptr<ConnectedClient> client);
     void writePacket(std::shared_ptr<ConnectedClient> client, const Packet& packet);
 
     void processPacket(std::shared_ptr<ConnectedClient> client, const std::vector<char>& buffer);
