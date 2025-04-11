@@ -48,6 +48,12 @@ void Server::readPacket(std::shared_ptr<ConnectedClient> client) {
             onDebugInfo(client, "[Server::readPacket] " + (ec ? ("Error: " + ec.message()) : "No errors"));
 
             if (!ec) {
+                std::stringstream ss;
+                for (size_t i = 0; i < length; ++i) {
+                    ss << std::hex << static_cast<int>((*buffer)[i]) << " ";
+                }
+                onDebugInfo(client, "[Server::readPacket] Raw Packet data: " + ss.str());
+
                 size_t sizeOfPacket = utils::Utils::bit32ToInt(*buffer);
                 onDebugInfo(client, "[Server::readPacket] Size of Packet: " + std::to_string(sizeOfPacket));
 
@@ -88,10 +94,9 @@ void Server::processPacket(std::shared_ptr<ConnectedClient> client, const std::v
     int         id   = utils::Utils::bit32ToInt(buffer);
     int         type = utils::Utils::typeToInt(buffer);
 
-    onDebugInfo(client, "[Server::processPacket] Packet:");
-    onDebugInfo(client, "[Server::processPacket] Id: " + std::to_string(id));
-    onDebugInfo(client, "[Server::processPacket] Type: " + std::to_string(type));
-    onDebugInfo(client, "[Server::processPacket] Data: " + packetData);
+    onDebugInfo(client, "[Server::processPacket] Packet id: " + std::to_string(id));
+    onDebugInfo(client, "[Server::processPacket] Packet type: " + std::to_string(type));
+    onDebugInfo(client, "[Server::processPacket] Packet data: " + packetData);
 
     Packet packet;
 
