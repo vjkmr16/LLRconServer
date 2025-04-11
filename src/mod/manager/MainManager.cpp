@@ -37,21 +37,11 @@ void MainManager::startRconServer() {
         ConfigManager::getConfig().rconSettings.port,
         ConfigManager::getConfig().rconSettings.maxConnections,
         ConfigManager::getConfig().rconSettings.password,
-        ConfigManager::getConfig().rconSettings.logOnNewConnection
-            ? &onNewConnection
-            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>)>(),
-        ConfigManager::getConfig().rconSettings.logOnClientAuth
-            ? &onClientAuth
-            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>)>(),
-        ConfigManager::getConfig().rconSettings.logOnClientDisconnect
-            ? &onClientDisconnect
-            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>)>(),
-        ConfigManager::getConfig().rconSettings.logOnCommand
-            ? &onCommand
-            : std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>(),
-        ConfigManager::getConfig().rconSettings.logOnDebugInfo
-            ? &onDebugInfo
-            : std::function<void(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>()
+        &onNewConnection,
+        &onClientAuth,
+        &onClientDisconnect,
+        &onCommand,
+        &onDebugInfo
     );
 
     rconServer->start();
@@ -66,6 +56,10 @@ void MainManager::stopRconServer() {
 }
 
 void MainManager::onNewConnection(const std::shared_ptr<rcon::ConnectedClient> client) {
+    if (!ConfigManager::getConfig().rconSettings.logOnNewConnection) {
+        return;
+    }
+
     Main::getInstance().getSelf().getLogger().info(
         "New connection from {}:{}",
         client->socket->remote_endpoint().address().to_string(),
@@ -74,6 +68,10 @@ void MainManager::onNewConnection(const std::shared_ptr<rcon::ConnectedClient> c
 }
 
 void MainManager::onClientAuth(const std::shared_ptr<rcon::ConnectedClient> client) {
+    if (!ConfigManager::getConfig().rconSettings.logOnClientAuth) {
+        return;
+    }
+
     Main::getInstance().getSelf().getLogger().info(
         "Client {}:{} has successfully authorized",
         client->socket->remote_endpoint().address().to_string(),
@@ -82,6 +80,10 @@ void MainManager::onClientAuth(const std::shared_ptr<rcon::ConnectedClient> clie
 }
 
 void MainManager::onClientDisconnect(const std::shared_ptr<rcon::ConnectedClient> client) {
+    if (!ConfigManager::getConfig().rconSettings.logOnClientDisconnect) {
+        return;
+    }
+
     Main::getInstance().getSelf().getLogger().info(
         "Client {}:{} disconnected",
         client->socket->remote_endpoint().address().to_string(),
@@ -90,12 +92,14 @@ void MainManager::onClientDisconnect(const std::shared_ptr<rcon::ConnectedClient
 }
 
 std::string MainManager::onCommand(const std::shared_ptr<rcon::ConnectedClient> client, const std::string& command) {
-    Main::getInstance().getSelf().getLogger().info(
-        "Client {}:{} has sent a new command: {}",
-        client->socket->remote_endpoint().address().to_string(),
-        client->socket->remote_endpoint().port(),
-        command
-    );
+    if (ConfigManager::getConfig().rconSettings.logOnCommand) {
+        Main::getInstance().getSelf().getLogger().info(
+            "Client {}:{} has sent a new command: {}",
+            client->socket->remote_endpoint().address().to_string(),
+            client->socket->remote_endpoint().port(),
+            command
+        );
+    }
 
     std::string         outputStr;
     ServerCommandOrigin origin =
@@ -123,6 +127,10 @@ std::string MainManager::onCommand(const std::shared_ptr<rcon::ConnectedClient> 
 }
 
 void MainManager::onDebugInfo(const std::shared_ptr<rcon::ConnectedClient> client, const std::string& debugInfo) {
+    if (!ConfigManager::getConfig().rconSettings.logOnDebugInfo) {
+        return;
+    }
+
     Main::getInstance().getSelf().getLogger().info(
         "[Client {}:{}] {}",
         client->socket->remote_endpoint().address().to_string(),
