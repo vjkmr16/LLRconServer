@@ -105,6 +105,8 @@ void Server::processPacket(std::shared_ptr<ConnectedClient> client, const std::v
     if (!client->isAuthenticated) {
         if (packetData == password) {
             packet = utils::Utils::compilePacket(id, DataType::SERVERDATA_AUTH_RESPONSE, "");
+
+            client->isAuthenticated = true;
             onClientAuth(client);
         } else {
             packet = utils::Utils::compilePacket(-1, DataType::SERVERDATA_AUTH_RESPONSE, "");
@@ -118,6 +120,7 @@ void Server::processPacket(std::shared_ptr<ConnectedClient> client, const std::v
             );
         } else {
             std::string data = onCommand(client, packetData);
+            onDebugInfo(client, "[Server::processPacket] New Packet data: " + data);
 
             packet = utils::Utils::compilePacket(id, DataType::SERVERDATA_RESPONSE_VALUE, data);
         }
