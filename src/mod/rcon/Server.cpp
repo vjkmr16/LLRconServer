@@ -44,15 +44,14 @@ void Server::readPacket(std::shared_ptr<ConnectedClient> client) {
     client->socket->async_read_some(
         boost::asio::buffer(*buffer),
         [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
-            onDebugInfo(client, "[Server::readPacket] New Packet. Length: " + std::to_string(length));
-            onDebugInfo(client, "[Server::readPacket] " + (ec ? ("Error: " + ec.message()) : "No errors"));
+            onDebugInfo(client, "[Server::readPacket] New packet. Length: " + std::to_string(length));
 
             if (!ec) {
                 std::stringstream ss;
                 for (size_t i = 0; i < length; ++i) {
                     ss << std::hex << static_cast<int>((*buffer)[i]) << " ";
                 }
-                onDebugInfo(client, "[Server::readPacket] Raw Packet data: " + ss.str());
+                onDebugInfo(client, "[Server::readPacket] Raw packet data: " + ss.str());
 
                 size_t sizeOfPacket = utils::Utils::bit32ToInt(*buffer);
                 onDebugInfo(client, "[Server::readPacket] Size of Packet: " + std::to_string(sizeOfPacket));
@@ -69,6 +68,11 @@ void Server::readPacket(std::shared_ptr<ConnectedClient> client) {
                     processPacket(client, *buffer);
                 }
             } else {
+                onClientDisconnect(client);
+                if (ec != boost::asio::error::eof) {
+                    onDebugInfo(client, "[Server::readPacket] Error occurred: " + ec.message());
+                }
+
                 std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
             }
@@ -84,6 +88,9 @@ void Server::writePacket(std::shared_ptr<ConnectedClient> client, const Packet& 
             if (!ec) {
                 readPacket(client);
             } else {
+                onClientDisconnect(client);
+                onDebugInfo(client, "[Server::readPacket] Error occurred: " + ec.message());
+
                 std::lock_guard<std::mutex> guard(clientsMutex);
                 clients.erase(client->socket.get());
             }
@@ -113,6 +120,8 @@ void Server::processPacket(std::shared_ptr<ConnectedClient> client, const std::v
         }
     } else {
         if (type != DataType::SERVERDATA_EXECCOMMAND) {
+            onDebugInfo(client, "[Server::processPacket] Invalid Packet type (" + std::to_string(type) + ").");
+
             packet = utils::Utils::compilePacket(
                 id,
                 DataType::SERVERDATA_RESPONSE_VALUE,

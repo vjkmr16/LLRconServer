@@ -12,8 +12,9 @@ public:
         unsigned short                                                     port,
         unsigned short                                                     maxConnections,
         const std::string&                                                 password,
-        const std::function<void(const std::shared_ptr<ConnectedClient>)>& onNewConnection = {},
-        const std::function<void(const std::shared_ptr<ConnectedClient>)>& onClientAuth    = {},
+        const std::function<void(const std::shared_ptr<ConnectedClient>)>& onNewConnection    = {},
+        const std::function<void(const std::shared_ptr<ConnectedClient>)>& onClientAuth       = {},
+        const std::function<void(const std::shared_ptr<ConnectedClient>)>& onClientDisconnect = {},
         const std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>& onCommand =
             {},
         const std::function<void(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>& onDebugInfo = {}
@@ -23,6 +24,7 @@ public:
       password(password),
       onNewConnection(onNewConnection),
       onClientAuth(onClientAuth),
+      onClientDisconnect(onClientDisconnect),
       onCommand(onCommand),
       onDebugInfo(onDebugInfo) {}
 
@@ -42,6 +44,7 @@ private:
     std::string                                                                                  password;
     std::function<void(const std::shared_ptr<ConnectedClient>)>                                  onNewConnection;
     std::function<void(const std::shared_ptr<ConnectedClient>)>                                  onClientAuth;
+    std::function<void(const std::shared_ptr<ConnectedClient>)>                                  onClientDisconnect;
     std::function<std::string(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)> onCommand;
     std::function<void(const std::shared_ptr<rcon::ConnectedClient>, const std::string&)>        onDebugInfo;
 

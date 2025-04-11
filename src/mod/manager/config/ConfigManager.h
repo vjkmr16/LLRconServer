@@ -9,6 +9,12 @@ struct RconSettings {
     unsigned short port           = 19130;
     unsigned short maxConnections = 5;
     std::string    password       = "Change this to your password";
+
+    bool logOnNewConnection    = true;
+    bool logOnClientAuth       = true;
+    bool logOnClientDisconnect = true;
+    bool logOnCommand          = true;
+    bool logOnDebugInfo        = false;
 };
 
 class ConfigManager final {
