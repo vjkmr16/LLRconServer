@@ -104,7 +104,7 @@ std::string MainManager::onCommand(const std::shared_ptr<rcon::ConnectedClient> 
 }
 
 void MainManager::onDebugInfo(const std::shared_ptr<rcon::ConnectedClient> client, const std::string& debugInfo) {
-    Main::getInstance().getSelf().getLogger().debug(
+    Main::getInstance().getSelf().getLogger().info(
         "[Client {}:{}] {}",
         client->socket->remote_endpoint().address().to_string(),
         client->socket->remote_endpoint().port(),
