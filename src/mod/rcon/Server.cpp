@@ -64,6 +64,8 @@ void Server::readPacket(std::shared_ptr<ConnectedClient> client) {
                     onDebugInfo(client, "[Server::readPacket] Correct Packet. Processing...");
 
                     buffer->resize(sizeOfPacket);
+                    buffer->erase(buffer->begin(), buffer->begin() + 4);
+
                     processPacket(client, *buffer);
                 }
             } else {
