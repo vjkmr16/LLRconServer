@@ -43,7 +43,7 @@ void Server::startReading(std::shared_ptr<ConnectedClient> client) {
         boost::asio::buffer(*buffer),
         [this, client, buffer](boost::system::error_code ec, [[maybe_unused]] size_t length) -> void {
             onDebugInfo(client, "[Server::startReading] Length: " + std::to_string(length));
-            onDebugInfo(client, "[Server::startReading] Data: " + std::string{buffer->begin(), buffer->end()});
+            onDebugInfo(client, "[Server::startReading] " + (ec ? ("Error: " + ec.message()) : "No errors"));
 
             if (!ec) {
                 size_t sizeOfPacket = utils::Utils::bit32ToInt(*buffer);
